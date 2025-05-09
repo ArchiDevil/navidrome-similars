@@ -1,65 +1,14 @@
 import {acceptHMRUpdate, defineStore} from 'pinia'
 import {Edge, Node} from 'vis-network/peer'
 import {useUserStore} from './userStore'
+import {
+  type ArtistDesc,
+  type ArtistsSubsonicResponse,
+  type LastFMApiResponse,
+  type SimilarityDesc,
+} from './types'
 
-type LastFMApiResponse =
-  | {
-      error: number
-      message: string
-    }
-  | {
-      similarartists: {
-        artist: {
-          name: string
-          mbid: string
-          match: number
-        }[]
-      }
-    }
-
-type ArtistsSubsonicResponse = {
-  'subsonic-response': {
-    status: string
-    version: string
-    type: string
-    serverVersion: string
-    openSubsonic: boolean
-    artists: {
-      index: {
-        name: string
-        artist: {
-          id: string
-          name: string
-          coverArt: string
-          albumCount: number
-          artistImageUrl: string
-          musicBrainzId: string
-          sortName: string
-          roles: string[]
-        }[]
-      }[]
-      lastModified: number
-      ignoredArticles: string
-    }
-  }
-}
-
-type ArtistDesc = {
-  id: number
-  mbid: string
-  albumCount: number
-}
-
-type SimilarityDesc = {
-  artist: string
-  mbid: string
-  match: number
-}
-
-const getSimilarArtists = async (
-  artist: string,
-  mbid: string
-): Promise<SimilarityDesc[]> => {
+const getSimilarArtists = async (artist: string): Promise<SimilarityDesc[]> => {
   const response = await fetch(
     new URL(
       `http://ws.audioscrobbler.com/2.0/?${new URLSearchParams({
@@ -78,11 +27,11 @@ const getSimilarArtists = async (
   const data: LastFMApiResponse = await response.json()
 
   if ('error' in data) {
-    console.error(data['message'])
+    console.error(data.message)
     return []
   }
 
-  const similarityIdx = data['similarartists']['artist'].map((artist) => {
+  const similarityIdx = data.similarartists.artist.map((artist) => {
     return {
       artist: artist.name,
       mbid: artist.mbid,
@@ -120,6 +69,7 @@ export const useDataStore = defineStore('data', {
       edges: [] as Edge[],
       similarities: loadSimilaritiesCache(),
       similaritiesQueue: [] as string[],
+      similarityMatchThreshold: 0.85,
     }
   },
   actions: {
@@ -157,8 +107,39 @@ export const useDataStore = defineStore('data', {
         }
       }
     },
+    async findSimilarArtists() {
+      // fill the queue
+      for (const artist of new Map(this.artists)) {
+        const name = artist[0]
+        this.similaritiesQueue.push(name)
+      }
+
+      // process the queue
+      while (this.similaritiesQueue.length) {
+        const artist = this.similaritiesQueue.shift()!
+
+        if (!this.similarities.has(artist)) {
+          this.addSimilarArtists(artist, await getSimilarArtists(artist))
+          await new Promise((resolve) => setTimeout(resolve, 50))
+        }
+
+        const similarities = this.similarities.get(artist)!
+        for (const similarity of similarities) {
+          if (similarity.match < this.similarityMatchThreshold) continue
+          if (!this.artists.has(similarity.artist)) {
+            this.artists.set(similarity.artist, {
+              id: this.lastId++,
+              mbid: similarity.mbid,
+              albumCount: 0,
+            })
+          }
+        }
+      }
+    },
     buildGraph() {
       this.nodes = []
+      this.edges = []
+
       for (const data of this.artists.entries()) {
         const name = data[0]
         const albumCount = data[1].albumCount
@@ -175,7 +156,6 @@ export const useDataStore = defineStore('data', {
         })
       }
 
-      this.edges = []
       for (const data of this.similarities.entries()) {
         const fromName = data[0]
         if (!this.artists.has(fromName)) {
@@ -200,39 +180,8 @@ export const useDataStore = defineStore('data', {
       }
     },
     async requestAllData() {
-      // step 1: get all existing artists
       await this.requestNavidromeArtists()
-
-      // step 2: find similar artists
-      let i = 0
-      for (const artist of new Map(this.artists)) {
-        if (i++ > 10) {
-          break
-        }
-
-        const name = artist[0]
-
-        if (!this.similarities.has(name)) {
-          this.addSimilarArtists(
-            name,
-            await getSimilarArtists(name, artist[1].mbid)
-          )
-        }
-
-        const similarities = this.similarities.get(name)!
-        for (const similarity of similarities) {
-          if (similarity.match < 0.65) continue
-          if (!this.artists.has(similarity.artist)) {
-            this.artists.set(similarity.artist, {
-              id: this.lastId++,
-              mbid: similarity.mbid,
-              albumCount: 0,
-            })
-          }
-        }
-      }
-
-      // step 3: build graph
+      await this.findSimilarArtists()
       this.buildGraph()
     },
   },
