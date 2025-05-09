@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import {computed, onMounted, shallowRef, unref, useTemplateRef} from 'vue'
 import {DataSet} from 'vis-data/peer'
-import {Network} from 'vis-network/peer'
+import {Network, Options} from 'vis-network/peer'
 import {useDataStore} from './dataStore'
 
-const container = useTemplateRef('network')
+const container = useTemplateRef('container')
 const store = useDataStore()
 const network = shallowRef<Network>()
-const options = {
+const options: Options = {
   nodes: {
     shape: 'dot',
   },
@@ -22,6 +22,9 @@ const options = {
       damping: 0.3,
     },
   },
+  layout: {
+    improvedLayout: false
+  }
 }
 
 onMounted(() => {
@@ -37,16 +40,21 @@ const loadData = async () => {
   })
   network.value?.setOptions(options)
 }
+
+const loading = computed(() => store.loading)
 </script>
 
 <template>
   <div class="app-wrapper">
     <div class="header">
       <button @click="loadData">Load data</button>
+      <span v-if="loading">
+        Loading, {{ store.similaritiesQueue.length }} remaining...
+      </span>
     </div>
     <div
-      class="network"
-      ref="network"
+      class="container"
+      ref="container"
     />
   </div>
 </template>
@@ -64,9 +72,9 @@ const loadData = async () => {
   width: 100%;
 }
 
-.network {
+.container {
   width: 80%;
-  height: 100%;
+  height: 90%;
   border: 1px solid lightgray;
 }
 </style>
