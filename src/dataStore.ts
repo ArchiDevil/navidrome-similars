@@ -1,44 +1,27 @@
 import {acceptHMRUpdate, defineStore} from 'pinia'
 import {Edge, Node} from 'vis-network/peer'
 import {useUserStore} from './userStore'
-import {
-  type ArtistDesc,
-  type ArtistsSubsonicResponse,
-  type LastFMApiResponse,
-  type SimilarityDesc,
-} from './types'
+import {type ArtistDesc, type SimilarityDesc} from './types'
+import {LastFm, Navidrome} from './services'
 
 const getSimilarArtists = async (artist: string): Promise<SimilarityDesc[]> => {
-  const response = await fetch(
-    new URL(
-      `http://ws.audioscrobbler.com/2.0/?${new URLSearchParams({
-        method: 'artist.getsimilar',
-        artist,
-        // TODO: try to use MBID if the artist is not found
-        // mbid,
-        autocorrect: '1',
-        limit: '25',
-        api_key: useUserStore().lastFmApiKey,
-        format: 'json',
-      })}`
+  try {
+    const data = await LastFm.getSimilarArtists(
+      artist,
+      useUserStore().lastFmApiKey
     )
-  )
-
-  const data: LastFMApiResponse = await response.json()
-
-  if ('error' in data) {
-    console.error(data.message)
+    const similarityIdx = data.similarartists.artist.map((artist) => {
+      return {
+        artist: artist.name,
+        mbid: artist.mbid,
+        match: artist.match,
+      }
+    })
+    return similarityIdx
+  } catch (e) {
+    console.log(e)
     return []
   }
-
-  const similarityIdx = data.similarartists.artist.map((artist) => {
-    return {
-      artist: artist.name,
-      mbid: artist.mbid,
-      match: artist.match,
-    }
-  })
-  return similarityIdx
 }
 
 const loadSimilaritiesCache = () => {
@@ -82,16 +65,11 @@ export const useDataStore = defineStore('data', {
       this.lastId = 0
 
       const user = useUserStore()
-      const response = await fetch(
-        `${user.navidromeApiBase}getArtists?${new URLSearchParams({
-          u: user.login,
-          c: 'Hoarder',
-          v: '1.16.1',
-          p: user.password,
-          f: 'json',
-        })}`
+      const data = await Navidrome.getArtists(
+        user.navidromeApiBase,
+        user.login,
+        user.password
       )
-      const data: ArtistsSubsonicResponse = await response.json()
       const artistIdx = data['subsonic-response'].artists.index
       const artistArrays = artistIdx.map((el) => el.artist)
 
