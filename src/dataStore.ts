@@ -115,6 +115,15 @@ export const useDataStore = defineStore('data', {
       }
     },
     buildGraph() {
+      const getColor = (albumCount: number) => {
+        if (albumCount > 4) return '#8ACEF4'
+        if (albumCount == 4) return '#A2D8F6'
+        if (albumCount == 3) return '#B9E2F9'
+        if (albumCount == 2) return '#D0EBFB'
+        if (albumCount == 1) return '#E8F5FD'
+        else return '#F5F5F5'
+      }
+
       this.nodes = []
       this.edges = []
 
@@ -124,12 +133,7 @@ export const useDataStore = defineStore('data', {
         this.nodes.push({
           id: data[1].id,
           label: name,
-          color:
-            albumCount > 0
-              ? albumCount > 2
-                ? '#539cfc'
-                : '#d4e6fc'
-              : '#f5f5f5',
+          color: getColor(albumCount),
           // value: albumCount,
         })
       }

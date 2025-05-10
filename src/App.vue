@@ -82,6 +82,9 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
       ref="container"
     />
     <div class="handles">
+      <h1>Settings</h1>
+
+      <h2>Credentials</h2>
       <div class="input-field">
         <label>Navidrome API base:</label>
         <input v-model="navidromeApiBase" />
@@ -98,7 +101,7 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
         />
       </div>
       <div class="input-field">
-        <label>LastFm API key:</label>
+        <label>LastFM API key:</label>
         <input v-model="lastFmApiKey" />
       </div>
 
@@ -110,6 +113,7 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
         Connection is {{ status }}
       </span>
 
+      <h2>Graph settings</h2>
       <button @click="loadData">Load data</button>
       <span v-if="loading">
         Loading, {{ store.similaritiesQueue.length }} remaining...
@@ -119,13 +123,35 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
 </template>
 
 <style scoped>
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+}
+
 .app-wrapper {
+  font-family: 'Inter', sans-serif;
+
   display: flex;
   flex-direction: row;
   gap: 8px;
   width: 100vw;
   height: 100vh;
   padding: 8px;
+}
+
+button {
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+}
+
+span,
+label {
+  font-size: 0.875rem;
+  margin-bottom: 2px;
+}
+
+input {
+  font-family: 'Inter', sans-serif;
 }
 
 .container {
@@ -146,5 +172,23 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
   display: flex;
   flex-direction: column;
   margin-bottom: 8px;
+}
+
+h1,
+h2 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+h1 {
+  margin-top: 8px;
+  margin-bottom: 0px;
+  font-size: 1.75rem;
+}
+
+h2 {
+  margin-top: 4px;
+  margin-bottom: 0px;
+  font-size: 1.25rem;
 }
 </style>
