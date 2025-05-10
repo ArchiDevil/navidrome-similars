@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import {computed, onMounted, shallowRef, unref, useTemplateRef} from 'vue'
+import {computed, onMounted, ref, shallowRef, unref, useTemplateRef} from 'vue'
 import {DataSet} from 'vis-data/peer'
 import {Network, Options} from 'vis-network/peer'
+
 import {useDataStore} from './dataStore'
+import {LastFm, Navidrome} from './services'
+import {useUserStore} from './userStore'
+import {storeToRefs} from 'pinia'
 
 const container = useTemplateRef('container')
 const store = useDataStore()
@@ -32,6 +36,29 @@ onMounted(() => {
   network.value = new Network(container.value, {}, options)
 })
 
+const status = ref<string>()
+const checkConnections = async () => {
+  const user = useUserStore()
+
+  status.value = 'establishing...'
+
+  try {
+    await Navidrome.getArtists(user.navidromeApiBase, user.login, user.password)
+  } catch (e) {
+    status.value = `failed! Unable to connect to Navidrome: ${e}`
+    return
+  }
+
+  try {
+    await LastFm.getSimilarArtists('Queen', user.lastFmApiKey)
+  } catch (e) {
+    status.value = `failed! Unable to connect to LastFM: ${e}`
+    return
+  }
+
+  status.value = 'OK'
+}
+
 const loadData = async () => {
   await store.requestAllData()
   network.value?.setData({
@@ -42,6 +69,10 @@ const loadData = async () => {
 }
 
 const loading = computed(() => store.loading)
+
+const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
+  useUserStore()
+)
 </script>
 
 <template>
@@ -51,6 +82,34 @@ const loading = computed(() => store.loading)
       ref="container"
     />
     <div class="handles">
+      <div class="input-field">
+        <label>Navidrome API base:</label>
+        <input v-model="navidromeApiBase" />
+      </div>
+      <div class="input-field">
+        <label>Login:</label>
+        <input v-model="login" />
+      </div>
+      <div class="input-field">
+        <label>Password:</label>
+        <input
+          type="password"
+          v-model="password"
+        />
+      </div>
+      <div class="input-field">
+        <label>LastFm API key:</label>
+        <input v-model="lastFmApiKey" />
+      </div>
+
+      <button @click="checkConnections">Check connections</button>
+      <span
+        v-if="status"
+        :style="{color: status == 'OK' ? 'green' : 'red'}"
+      >
+        Connection is {{ status }}
+      </span>
+
       <button @click="loadData">Load data</button>
       <span v-if="loading">
         Loading, {{ store.similaritiesQueue.length }} remaining...
@@ -63,20 +122,29 @@ const loading = computed(() => store.loading)
 .app-wrapper {
   display: flex;
   flex-direction: row;
-  gap: 1vh;
+  gap: 8px;
   width: 100vw;
   height: 100vh;
   padding: 8px;
 }
 
 .container {
-  width: 80%;
+  flex-basis: 75%;
   border: 1px solid lightgray;
 }
 
 .handles {
   border: 1px solid lightgray;
-  flex-grow: 1;
+  flex-basis: 25%;
   padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
 }
 </style>
