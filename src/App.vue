@@ -73,6 +73,8 @@ const loading = computed(() => store.loading)
 const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
   useUserStore()
 )
+
+const {similarityMatchThreshold} = storeToRefs(useDataStore())
 </script>
 
 <template>
@@ -81,43 +83,55 @@ const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
       class="container"
       ref="container"
     />
-    <div class="handles">
+    <div class="settings">
       <h1>Settings</h1>
+      <div class="handles">
+        <h2>Credentials</h2>
+        <div class="input-field">
+          <label>Navidrome API base:</label>
+          <input v-model="navidromeApiBase" />
+        </div>
+        <div class="input-field">
+          <label>Login:</label>
+          <input v-model="login" />
+        </div>
+        <div class="input-field">
+          <label>Password:</label>
+          <input
+            type="password"
+            v-model="password"
+          />
+        </div>
+        <div class="input-field">
+          <label>LastFM API key:</label>
+          <input v-model="lastFmApiKey" />
+        </div>
 
-      <h2>Credentials</h2>
-      <div class="input-field">
-        <label>Navidrome API base:</label>
-        <input v-model="navidromeApiBase" />
+        <button @click="checkConnections">Check connections</button>
+        <span
+          v-if="status"
+          :style="{color: status == 'OK' ? 'green' : 'red'}"
+        >
+          Connection is {{ status }}
+        </span>
       </div>
-      <div class="input-field">
-        <label>Login:</label>
-        <input v-model="login" />
+      <div class="handles">
+        <h2>Graph settings</h2>
+        <button @click="loadData">Load data</button>
+        <span v-if="loading">
+          Loading, {{ store.similaritiesQueue.length }} remaining...
+        </span>
+        <div class="input-field">
+          <label>Similarity threshold:</label>
+          <input
+            type="number"
+            min="0.05"
+            max="0.95"
+            step="0.05"
+            v-model="similarityMatchThreshold"
+          />
+        </div>
       </div>
-      <div class="input-field">
-        <label>Password:</label>
-        <input
-          type="password"
-          v-model="password"
-        />
-      </div>
-      <div class="input-field">
-        <label>LastFM API key:</label>
-        <input v-model="lastFmApiKey" />
-      </div>
-
-      <button @click="checkConnections">Check connections</button>
-      <span
-        v-if="status"
-        :style="{color: status == 'OK' ? 'green' : 'red'}"
-      >
-        Connection is {{ status }}
-      </span>
-
-      <h2>Graph settings</h2>
-      <button @click="loadData">Load data</button>
-      <span v-if="loading">
-        Loading, {{ store.similaritiesQueue.length }} remaining...
-      </span>
     </div>
   </div>
 </template>
@@ -154,15 +168,21 @@ input {
   font-family: 'Inter', sans-serif;
 }
 
+.settings {
+  flex-basis: 25%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid lightgray;
+  padding: 8px;
+}
+
 .container {
   flex-basis: 75%;
   border: 1px solid lightgray;
 }
 
 .handles {
-  border: 1px solid lightgray;
-  flex-basis: 25%;
-  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
