@@ -2,11 +2,11 @@
 import {computed, onMounted, ref, shallowRef, unref, useTemplateRef} from 'vue'
 import {DataSet} from 'vis-data/peer'
 import {Network, Options} from 'vis-network/peer'
+import {storeToRefs} from 'pinia'
 
 import {useDataStore} from './dataStore'
 import {LastFm, Navidrome} from './services'
 import {useUserStore} from './userStore'
-import {storeToRefs} from 'pinia'
 
 const container = useTemplateRef('container')
 const store = useDataStore()
@@ -31,9 +31,24 @@ const options: Options = {
   },
 }
 
+const selectedNode = ref<string>()
+const selectedArtist = computed(() =>
+  selectedNode.value ? store.artists.get(selectedNode.value ?? '') : undefined
+)
+const similarities = computed(() =>
+  selectedNode.value
+    ? store.similarities.get(selectedNode.value ?? '')
+    : undefined
+)
+
 onMounted(() => {
   if (!container.value) return
   network.value = new Network(container.value, {}, options)
+  network.value.on('selectNode', (params) => {
+    const selectedId = params.nodes[0]
+    const node = store.nodes.find((node) => node.id === selectedId)
+    selectedNode.value = node?.label ?? 'unknown'
+  })
 })
 
 const status = ref<string>()
@@ -131,6 +146,24 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
             v-model="similarityMatchThreshold"
           />
         </div>
+      </div>
+      <div
+        v-if="selectedNode && selectedArtist"
+        class="handles"
+        style="overflow-y: scroll"
+      >
+        <h2>{{ selectedNode }}</h2>
+        <span>ID: {{ selectedArtist?.id }}</span>
+        <span>MBID: {{ selectedArtist?.mbid }}</span>
+        <span>Albums: {{ selectedArtist?.albumCount }}</span>
+        <span
+          v-for="sim in similarities"
+          :style="{
+            color: sim.match > similarityMatchThreshold ? '#000000' : '#AAAAAA',
+          }"
+        >
+          {{ sim.match }}: {{ sim.artist }}
+        </span>
       </div>
     </div>
   </div>
