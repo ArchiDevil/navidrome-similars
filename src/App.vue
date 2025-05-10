@@ -23,8 +23,8 @@ const options: Options = {
     },
   },
   layout: {
-    improvedLayout: false
-  }
+    improvedLayout: false,
+  },
 }
 
 onMounted(() => {
@@ -46,35 +46,37 @@ const loading = computed(() => store.loading)
 
 <template>
   <div class="app-wrapper">
-    <div class="header">
+    <div
+      class="container"
+      ref="container"
+    />
+    <div class="handles">
       <button @click="loadData">Load data</button>
       <span v-if="loading">
         Loading, {{ store.similaritiesQueue.length }} remaining...
       </span>
     </div>
-    <div
-      class="container"
-      ref="container"
-    />
   </div>
 </template>
 
 <style scoped>
 .app-wrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1vh;
-  width: 100%;
-  height: 100svh;
-}
-
-.header {
-  width: 100%;
+  width: 100vw;
+  height: 100vh;
+  padding: 8px;
 }
 
 .container {
   width: 80%;
-  height: 90%;
   border: 1px solid lightgray;
+}
+
+.handles {
+  border: 1px solid lightgray;
+  flex-grow: 1;
+  padding: 8px;
 }
 </style>
