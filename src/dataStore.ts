@@ -147,6 +147,8 @@ export const useDataStore = defineStore('data', {
 
         const fromId = this.artists.get(fromName)!.id
         for (const similarity of data[1]) {
+          if (similarity.match < this.similarityMatchThreshold) continue
+
           const toName = similarity.artist
           if (!this.artists.has(toName)) {
             continue
