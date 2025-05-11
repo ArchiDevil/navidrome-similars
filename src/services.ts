@@ -93,7 +93,7 @@ export namespace LastFm {
   ): Promise<SimilarArtists> => {
     const response = await fetch(
       new URL(
-        `http://ws.audioscrobbler.com/2.0/?${new URLSearchParams({
+        `https://ws.audioscrobbler.com/2.0/?${new URLSearchParams({
           method: 'artist.getsimilar',
           artist,
           // TODO: try to use MBID if the artist is not found
