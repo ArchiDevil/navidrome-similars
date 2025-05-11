@@ -58,7 +58,11 @@ const checkConnections = async () => {
   status.value = 'establishing...'
 
   try {
-    await Navidrome.getArtists(user.navidromeApiBase, user.login, user.password)
+    await Navidrome.getArtists(
+      user.navidromeInstance,
+      user.login,
+      user.password
+    )
   } catch (e) {
     status.value = `failed! Unable to connect to Navidrome: ${e}`
     return
@@ -85,7 +89,7 @@ const loadData = async () => {
 
 const loading = computed(() => store.loading)
 
-const {login, password, navidromeApiBase, lastFmApiKey} = storeToRefs(
+const {login, password, navidromeInstance, lastFmApiKey} = storeToRefs(
   useUserStore()
 )
 
@@ -103,8 +107,8 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
       <div class="handles">
         <h2>Credentials</h2>
         <div class="input-field">
-          <label>Navidrome API base:</label>
-          <input v-model="navidromeApiBase" />
+          <label>Your Navidrome server (https://example.com/):</label>
+          <input v-model="navidromeInstance" />
         </div>
         <div class="input-field">
           <label>Login:</label>

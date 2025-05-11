@@ -68,7 +68,7 @@ export const useDataStore = defineStore('data', {
 
       const user = useUserStore()
       const data = await Navidrome.getArtists(
-        user.navidromeApiBase,
+        user.navidromeInstance,
         user.login,
         user.password
       )

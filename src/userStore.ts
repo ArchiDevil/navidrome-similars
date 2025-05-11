@@ -2,7 +2,7 @@ import {acceptHMRUpdate, defineStore} from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    navidromeApiBase: '',
+    navidromeInstance: '',
     login: '',
     password: '',
     lastFmApiKey: '',

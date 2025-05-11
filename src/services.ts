@@ -50,15 +50,17 @@ export namespace Navidrome {
     login: string,
     password: string
   ): Promise<ArtistsDesc> => {
-    const response = await fetch(
-      `${apiBase}getArtists?${new URLSearchParams({
+    const url = new URL(
+      `/rest/getArtists?${new URLSearchParams({
         u: login,
         c: 'Hoarder',
         v: '1.16.1',
         p: password,
         f: 'json',
-      })}`
+      })}`,
+      apiBase
     )
+    const response = await fetch(url)
     const data: ArtistsDesc | ApiError = await response.json()
 
     if (isApiError(data)) {
