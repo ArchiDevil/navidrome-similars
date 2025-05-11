@@ -10,6 +10,8 @@ const getSimilarArtists = async (artist: string): Promise<SimilarityDesc[]> => {
       artist,
       useUserStore().lastFmApiKey
     )
+    // TODO: add matching between exact names from Navidrome and corrected ones
+    // from LastFM to avoid duplicates
     const similarityIdx = data.similarartists.artist.map((artist) => {
       return {
         artist: artist.name,

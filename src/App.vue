@@ -162,7 +162,7 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
             color: sim.match > similarityMatchThreshold ? '#000000' : '#AAAAAA',
           }"
         >
-          {{ sim.match }}: {{ sim.artist }}
+          {{ Number(sim.match).toFixed(2) }}: {{ sim.artist }}
         </span>
       </div>
     </div>
