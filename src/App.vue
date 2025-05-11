@@ -174,10 +174,7 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
 </template>
 
 <style scoped>
-@font-face {
-  font-family: 'Inter';
-  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 
 .app-wrapper {
   font-family: 'Inter', sans-serif;
