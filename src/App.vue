@@ -87,8 +87,6 @@ const loadData = async () => {
   network.value?.setOptions(options)
 }
 
-const loading = computed(() => store.loading)
-
 const {login, password, navidromeInstance, lastFmApiKey} = storeToRefs(
   useUserStore()
 )
@@ -97,48 +95,70 @@ const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
 </script>
 
 <template>
-  <div class="app-wrapper">
+  <div class="app-wrapper flex flex-row gap-2 p-2 text-slate-900 w-dvw h-dvh">
     <div
-      class="container"
+      class="basis-3/4 border-slate-300 border border-solid rounded-2xl bg-slate-50"
       ref="container"
     />
-    <div class="settings">
-      <h1>Settings</h1>
-      <div class="handles">
-        <h2>Credentials</h2>
-        <div class="input-field">
-          <label>Your Navidrome server (https://example.com/):</label>
-          <input v-model="navidromeInstance" />
-        </div>
-        <div class="input-field">
-          <label>Login:</label>
-          <input v-model="login" />
-        </div>
-        <div class="input-field">
-          <label>Password:</label>
+    <div
+      class="basis-1/4 flex flex-col gap-2 p-2 border-slate-300 border border-solid rounded-2xl bg-slate-50"
+    >
+      <div class="flex flex-col gap-1">
+        <h2 class="font-semibold mt-1 mb-0 text-xl">Credentials</h2>
+        <div class="flex flex-col mb-2">
+          <label class="mb-0.5 text-sm"
+            >Your Navidrome server (https://example.com/):</label
+          >
           <input
+            class="text-sm bg-slate-50 border rounded-md border-slate-500 px-1 py-0.5"
+            v-model="navidromeInstance"
+          />
+        </div>
+        <div class="flex flex-col mb-2">
+          <label class="mb-0.5 text-sm">Login:</label>
+          <input
+            class="text-sm bg-slate-50 border rounded-md border-slate-500 px-1 py-0.5"
+            v-model="login"
+          />
+        </div>
+        <div class="flex flex-col mb-2">
+          <label class="mb-0.5 text-sm">Password:</label>
+          <input
+            class="text-sm bg-slate-50 border rounded-md border-slate-500 px-1 py-0.5"
             type="password"
             v-model="password"
           />
         </div>
-        <div class="input-field">
-          <label>LastFM API key:</label>
-          <input v-model="lastFmApiKey" />
+        <div class="flex flex-col mb-2">
+          <label class="mb-0.5 text-sm">LastFM API key:</label>
+          <input
+            class="text-sm bg-slate-50 border rounded-md border-slate-500 px-1 py-0.5"
+            v-model="lastFmApiKey"
+          />
         </div>
-
-        <button @click="checkConnections">Check connections</button>
+        <button
+          class="text-sm bg-slate-500 text-slate-50 rounded-md p-1 hover:bg-slate-400 transition-colors cursor-pointer"
+          @click="checkConnections"
+        >
+          Check connections
+        </button>
         <span
           v-if="status"
-          :style="{color: status == 'OK' ? 'green' : 'red'}"
+          class="text-sm mb-0.5"
+          :class="{
+            'text-green-700': status === 'OK',
+            'text-red-700': status !== 'OK',
+          }"
         >
           Connection is {{ status }}
         </span>
       </div>
-      <div class="handles">
-        <h2>Graph settings</h2>
-        <div class="input-field">
-          <label>Similarity threshold:</label>
+      <div class="flex flex-col gap-1">
+        <h2 class="font-semibold mt-1 mb-0 text-xl">Graph settings</h2>
+        <div class="flex flex-col mb-2">
+          <label class="mb-0.5 text-sm">Similarity threshold:</label>
           <input
+            class="text-sm bg-slate-50 border rounded-md border-slate-500 px-1 py-0.5"
             type="number"
             min="0.05"
             max="0.95"
@@ -146,14 +166,17 @@ const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
             v-model="similarityMatchThreshold"
           />
         </div>
-        <div style="display: flex; flex-direction: row; align-items: flex-end">
-          <label>Show not found artists (extremely slow): </label>
+        <div class="flex flex-row items-center gap-1">
+          <label class="mb-0.5 text-sm"
+            >Show not found artists (extremely slow):
+          </label>
           <input
             type="checkbox"
             v-model="showOrphans"
           />
         </div>
         <button
+          class="text-sm bg-slate-500 text-slate-50 rounded-md p-1 hover:bg-slate-400 transition-colors cursor-pointer disabled:bg-slate-300"
           @click="loadData"
           :disabled="store.loading"
         >
@@ -166,17 +189,27 @@ const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
       </div>
       <div
         v-if="selectedNode && selectedArtist"
-        class="handles"
-        style="overflow-y: scroll"
+        class="flex flex-col gap-1 overflow-y-scroll"
       >
-        <h2>{{ selectedNode }}</h2>
-        <span>ID: {{ selectedArtist?.id }}</span>
-        <span>MBID: {{ selectedArtist?.mbid }}</span>
-        <span>Albums: {{ selectedArtist?.albumCount }}</span>
+        <h2 class="font-medium mt-1 mb-0 text-xl">
+          {{ selectedNode }} ({{ selectedArtist.albumCount }} albums)
+        </h2>
+        <span
+          v-if="selectedArtist && selectedArtist.mbid"
+          class="text-sm mb-0.5"
+          >MBID:
+          <a
+            class="text-sm underline hover:decoration-2"
+            :href="`https://musicbrainz.org/artist/${selectedArtist.mbid}`"
+            target="_blank"
+            >{{ selectedArtist?.mbid }}</a
+          >
+        </span>
         <span
           v-for="sim in similarities"
-          :style="{
-            color: sim.match > similarityMatchThreshold ? '#000000' : '#AAAAAA',
+          class="text-sm mb-0.5"
+          :class="{
+            'text-slate-400': sim.match < similarityMatchThreshold,
           }"
         >
           {{ Number(sim.match).toFixed(2) }}: {{ sim.artist }}
@@ -185,77 +218,3 @@ const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
     </div>
   </div>
 </template>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-.app-wrapper {
-  font-family: 'Inter', sans-serif;
-
-  display: flex;
-  flex-direction: row;
-  gap: 8px;
-  width: 100vw;
-  height: 100vh;
-  padding: 8px;
-}
-
-button {
-  font-size: 0.875rem;
-  font-family: 'Inter', sans-serif;
-}
-
-span,
-label {
-  font-size: 0.875rem;
-  margin-bottom: 2px;
-}
-
-input {
-  font-family: 'Inter', sans-serif;
-}
-
-.settings {
-  flex-basis: 25%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid lightgray;
-  padding: 8px;
-}
-
-.container {
-  flex-basis: 75%;
-  border: 1px solid lightgray;
-}
-
-.handles {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.input-field {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 8px;
-}
-
-h1,
-h2 {
-  font-family: 'Inter', sans-serif;
-  font-weight: 600;
-}
-
-h1 {
-  margin-top: 8px;
-  margin-bottom: 0px;
-  font-size: 1.75rem;
-}
-
-h2 {
-  margin-top: 4px;
-  margin-bottom: 0px;
-  font-size: 1.25rem;
-}
-</style>

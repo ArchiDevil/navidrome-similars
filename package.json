@@ -2,6 +2,7 @@
   "name": "music-deps",
   "version": "1.0.0",
   "main": "index.html",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -13,10 +14,12 @@
   "description": "",
   "dependencies": {
     "pinia": "^3.0.2",
+    "tailwindcss": "^4.1.7",
     "vis-network": "^9.1.9",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.1.7",
     "@vitejs/plugin-vue": "^5.2.3",
     "vite": "^6.3.5",
     "vite-plugin-vue-devtools": "^7.7.6"
