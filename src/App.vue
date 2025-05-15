@@ -93,7 +93,7 @@ const {login, password, navidromeInstance, lastFmApiKey} = storeToRefs(
   useUserStore()
 )
 
-const {similarityMatchThreshold} = storeToRefs(useDataStore())
+const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
 </script>
 
 <template>
@@ -136,16 +136,6 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
       </div>
       <div class="handles">
         <h2>Graph settings</h2>
-        <button
-          @click="loadData"
-          :disabled="store.loading"
-        >
-          <template v-if="!store.loading">Load data</template>
-          <template v-else>
-            Loading,
-            {{ store.similaritiesQueue.length }} remaining...
-          </template>
-        </button>
         <div class="input-field">
           <label>Similarity threshold:</label>
           <input
@@ -156,6 +146,23 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
             v-model="similarityMatchThreshold"
           />
         </div>
+        <div style="display: flex; flex-direction: row; align-items: flex-end">
+          <label>Show not found artists (extremely slow): </label>
+          <input
+            type="checkbox"
+            v-model="showOrphans"
+          />
+        </div>
+        <button
+          @click="loadData"
+          :disabled="store.loading"
+        >
+          <template v-if="!store.loading">Load data</template>
+          <template v-else>
+            Loading,
+            {{ store.similaritiesQueue.length }} remaining...
+          </template>
+        </button>
       </div>
       <div
         v-if="selectedNode && selectedArtist"

@@ -93,6 +93,7 @@ export const useDataStore = defineStore('data', {
       similarities: loadSimilaritiesCache(),
       similaritiesQueue: [] as string[],
       similarityMatchThreshold: 0.85,
+      showOrphans: false,
     }
   },
   actions: {
@@ -181,6 +182,16 @@ export const useDataStore = defineStore('data', {
       for (const data of this.artists.entries()) {
         const name = data[0]
         const albumCount = data[1].albumCount
+
+        if (
+          !this.showOrphans &&
+          albumCount > 0 &&
+          (!this.similarities.has(name) ||
+            this.similarities.get(name)?.length == 0)
+        ) {
+          continue
+        }
+
         this.nodes.push({
           id: data[1].id,
           label: name,
