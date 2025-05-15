@@ -136,10 +136,16 @@ const {similarityMatchThreshold} = storeToRefs(useDataStore())
       </div>
       <div class="handles">
         <h2>Graph settings</h2>
-        <button @click="loadData">Load data</button>
-        <span v-if="loading">
-          Loading, {{ store.similaritiesQueue.length }} remaining...
-        </span>
+        <button
+          @click="loadData"
+          :disabled="store.loading"
+        >
+          <template v-if="!store.loading">Load data</template>
+          <template v-else>
+            Loading,
+            {{ store.similaritiesQueue.length }} remaining...
+          </template>
+        </button>
         <div class="input-field">
           <label>Similarity threshold:</label>
           <input
