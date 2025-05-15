@@ -4,11 +4,49 @@ import {useUserStore} from './userStore'
 import {type ArtistDesc, type SimilarityDesc} from './types'
 import {LastFm, Navidrome} from './services'
 
-const getSimilarArtists = async (artist: string): Promise<SimilarityDesc[]> => {
+const splitName = (name: string): string[] => {
+  const delimiters = [
+    ', ',
+    '&',
+    '/',
+    ' VS ',
+    ' Vs ',
+    ' ft ',
+    ' f.',
+    ' Ft ',
+    ' ft.',
+    ' Ft.',
+    ' and ',
+    ' And ',
+    ' feat ',
+    ' Feat ',
+    ' Featuring ',
+    ' feat.',
+    ' Feat.',
+  ]
+  let output: string[] = [name]
+  for (const del of delimiters) {
+    let intermediate: string[] = []
+
+    while (output.length > 0) {
+      const name = output.splice(0)
+      name[0].split(del).forEach((n) => intermediate.push(n))
+    }
+
+    output = intermediate
+  }
+  return output.map((s) => s.trim())
+}
+
+const getSimilarArtists = async (
+  artist: string,
+  limit: number = 25
+): Promise<SimilarityDesc[]> => {
   try {
     const data = await LastFm.getSimilarArtists(
       artist,
-      useUserStore().lastFmApiKey
+      useUserStore().lastFmApiKey,
+      limit
     )
     // TODO: add matching between exact names from Navidrome and corrected ones
     // from LastFM to avoid duplicates
@@ -77,13 +115,20 @@ export const useDataStore = defineStore('data', {
 
       for (const artistArray of artistArrays) {
         for (const artist of artistArray) {
-          const name = artist.name
+          const names = splitName(artist.name)
           const albumsCount = artist.albumCount
-          this.artists.set(name, {
-            id: this.lastId++,
-            mbid: artist.musicBrainzId,
-            albumCount: albumsCount,
-          })
+
+          for (const name of names) {
+            if (this.artists.has(name)) {
+              this.artists.get(name)!.albumCount += albumsCount
+            } else {
+              this.artists.set(name, {
+                id: this.lastId++,
+                mbid: artist.musicBrainzId,
+                albumCount: albumsCount,
+              })
+            }
+          }
         }
       }
     },
@@ -95,11 +140,15 @@ export const useDataStore = defineStore('data', {
       }
 
       // process the queue
+      const artistsLimit = this.artists.size > 1000 ? 10 : 25
       while (this.similaritiesQueue.length) {
         const artist = this.similaritiesQueue.shift()!
 
         if (!this.similarities.has(artist)) {
-          this.addSimilarArtists(artist, await getSimilarArtists(artist))
+          this.addSimilarArtists(
+            artist,
+            await getSimilarArtists(artist, artistsLimit)
+          )
           await new Promise((resolve) => setTimeout(resolve, 50))
         }
 

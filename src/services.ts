@@ -89,7 +89,8 @@ export namespace LastFm {
 
   export const getSimilarArtists = async (
     artist: string,
-    apiKey: string
+    apiKey: string,
+    limit: number = 25
   ): Promise<SimilarArtists> => {
     const response = await fetch(
       new URL(
@@ -99,7 +100,7 @@ export namespace LastFm {
           // TODO: try to use MBID if the artist is not found
           // mbid,
           autocorrect: '1',
-          limit: '25',
+          limit: limit.toString(),
           api_key: apiKey,
           format: 'json',
         })}`
