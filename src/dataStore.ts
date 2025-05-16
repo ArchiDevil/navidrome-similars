@@ -64,42 +64,37 @@ const getSimilarArtists = async (
   }
 }
 
-const loadSimilaritiesCache = () => {
-  const similaritiesCache = new Map<string, SimilarityDesc[]>()
-
-  const serializedData = localStorage.getItem('similarities')
-  if (serializedData) {
-    const data = JSON.parse(serializedData)
-    data.forEach(([artist, similarities]: [string, SimilarityDesc[]]) => {
-      similaritiesCache.set(artist, similarities)
-    })
-  }
-
-  return similaritiesCache
-}
-
-const saveSimilaritiesCache = (similarities: Map<string, SimilarityDesc[]>) => {
-  const serializedData = JSON.stringify(Array.from(similarities))
-  localStorage.setItem('similarities', serializedData)
-}
-
 export const useDataStore = defineStore('data', {
   state: () => {
+    const similaritiesCache = new Map<string, SimilarityDesc[]>()
+
+    const serializedData = localStorage.getItem('similarities')
+    if (serializedData) {
+      const data = JSON.parse(serializedData)
+      data.forEach(([artist, similarities]: [string, SimilarityDesc[]]) => {
+        similaritiesCache.set(artist, similarities)
+      })
+    }
+
     return {
       lastId: 0,
       artists: new Map<string, ArtistDesc>(),
       nodes: [] as Node[],
       edges: [] as Edge[],
-      similarities: loadSimilaritiesCache(),
+      similarities: similaritiesCache,
       similaritiesQueue: [] as string[],
       similarityMatchThreshold: 0.85,
       showOrphans: false,
+      enableCache: true,
     }
   },
   actions: {
     addSimilarArtists(artist: string, similarities: SimilarityDesc[]) {
       this.similarities.set(artist, similarities)
-      saveSimilaritiesCache(this.similarities)
+      if (this.enableCache) {
+        const serializedData = JSON.stringify(Array.from(this.similarities))
+        localStorage.setItem('similarities', serializedData)
+      }
     },
     async requestNavidromeArtists() {
       this.artists = new Map<string, ArtistDesc>()

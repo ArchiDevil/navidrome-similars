@@ -91,7 +91,9 @@ const {login, password, navidromeInstance, lastFmApiKey} = storeToRefs(
   useUserStore()
 )
 
-const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
+const {similarityMatchThreshold, showOrphans, enableCache} = storeToRefs(
+  useDataStore()
+)
 </script>
 
 <template>
@@ -167,12 +169,21 @@ const {similarityMatchThreshold, showOrphans} = storeToRefs(useDataStore())
           />
         </div>
         <div class="flex flex-row items-center gap-1">
-          <label class="mb-0.5 text-sm"
-            >Show not found artists (extremely slow):
+          <label class="mb-0.5 text-sm">
+            Show not found artists (extremely slow):
           </label>
           <input
             type="checkbox"
             v-model="showOrphans"
+          />
+        </div>
+        <div class="flex flex-row items-center gap-1">
+          <label class="mb-0.5 text-sm">
+            Enable cache (disable if you have a lot of artists):
+          </label>
+          <input
+            type="checkbox"
+            v-model="enableCache"
           />
         </div>
         <button
